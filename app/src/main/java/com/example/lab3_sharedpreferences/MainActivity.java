@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+        
 
         dateButton.setOnClickListener(new View.OnClickListener() {
             @Override
