@@ -3,11 +3,12 @@ package com.example.lab3_sharedpreferences;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -16,15 +17,16 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import java.util.Calendar;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
     private EditText nameEditText,emailEditText,passwordEditText,dateEditText;
     private CheckBox checkbox;
     private SharedPreferences sharedPreferences;
     private Button loginButton,dateButton;
-    private Calendar calendar ;
+    private Calendar myCalendar = Calendar.getInstance();
     private DatePickerDialog datePickerDialog;
-    int year, month, day;
+    private String dateOfPicker;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
         initialize();
 
-        sharedPreferences = getSharedPreferences("User", Context.MODE_PRIVATE);
+        sharedPreferences = getSharedPreferences("User2", Context.MODE_PRIVATE);
 
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -43,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
                     editor.putString("Name", nameEditText.getText().toString());
                     editor.putString("Email", emailEditText.getText().toString());
                     editor.putString("Password", passwordEditText.getText().toString());
+                    editor.putString("Date", dateOfPicker);
                     editor.commit();
                     Toast.makeText(MainActivity.this, "Saved!", Toast.LENGTH_LONG).show();
                 }else
@@ -52,29 +55,34 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        
+
+
+        final DatePickerDialog.OnDateSetListener date = new DatePickerDialog.OnDateSetListener() {
+
+            @SuppressLint("SetTextI18n")
+            @Override
+            public void onDateSet(DatePicker view, int year, int monthOfYear,
+                                  int dayOfMonth) {
+                myCalendar.set(Calendar.YEAR, year);
+                myCalendar.set(Calendar.MONTH, monthOfYear);
+                myCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                Log.i("Date", String.valueOf(myCalendar.get(Calendar.DAY_OF_MONTH)));
+                dateOfPicker = myCalendar.get(Calendar.YEAR)+"/"+(myCalendar.get(Calendar.MONTH)+1)+"/"+myCalendar.get(Calendar.DAY_OF_MONTH);
+                dateEditText.setText(dateOfPicker);
+            }
+
+        };
 
         dateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                calendar = Calendar.getInstance();
-                year = calendar.get(Calendar.YEAR);
-                month = calendar.get(Calendar.MONTH);
-                day = calendar.get(Calendar.DAY_OF_MONTH);
+                new DatePickerDialog(MainActivity.this, date, myCalendar.get(Calendar.YEAR),myCalendar.get(Calendar.MONTH),myCalendar.get(Calendar.DAY_OF_MONTH)).show();
 
-                datePickerDialog = new DatePickerDialog(MainActivity.this, new DatePickerDialog.OnDateSetListener() {
-                    @Override
-                    public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                        dateEditText.setText(day+"/"+month+"/"+year);
-                    }
-                },year,month,day);
-                datePickerDialog.show();
             }
         });
 
 
-
-        getSharedPreferenceStrings("Name","Email","Password");
+        getSharedPreferenceStrings("Name","Email","Password", "Date");
 
     }
 
@@ -89,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
         dateButton = findViewById(R.id.dateButton);
     }
 
-    private void getSharedPreferenceStrings(String nameKey,String emailKey,String passwordKey)
+    private void getSharedPreferenceStrings(String nameKey,String emailKey,String passwordKey, String dateKey)
     {
         String name = sharedPreferences.getString(nameKey,"");
         if (name!="")
@@ -105,6 +113,10 @@ public class MainActivity extends AppCompatActivity {
         if (password!="")
         {
             passwordEditText.setText(password);
+        }
+        String date = sharedPreferences.getString(dateKey, "");
+        if (date!=""){
+            dateEditText.setText(date);
         }
     }
 }
